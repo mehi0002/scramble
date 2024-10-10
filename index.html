@@ -23,7 +23,7 @@
   <script type="text/babel">
     const root = ReactDOM.createRoot(document.getElementById('root'));
     
-    function Stats(){
+    function Stats(props){
       return(
         <table>
           <thead>
@@ -35,9 +35,9 @@
           </thead>
           <tbody>
             <tr>
-              <td>x</td>
-              <td>x</td>
-              <td>x</td>
+              <td>{props.score}</td>
+              <td>{props.strikes}</td>
+              <td>{props.passes}</td>
             </tr>
           </tbody>
         </table>
@@ -89,6 +89,10 @@
       const word = shuffledWordList.pop();
       const scrambledWord = shuffle(word);
 
+      const score = 0;
+      const strikes = 3;
+      const passes = 5;
+
       console.log(wordList);
       console.log(shuffledWordList);
       console.log(word);
@@ -97,7 +101,7 @@
       return(
         <>
           <h1>Scramble</h1>
-          <Stats />
+          <Stats score={score} strikes={strikes} passes={passes} />
           <WordDisplay word={scrambledWord}/>
           <PlayerArea />
         </>
