@@ -50,19 +50,12 @@
       );
     }
 
-    function PlayerArea(){
+    function PlayerArea(props){
       return(
         <form>
-          <input type="text"></input>
-          <GuessButton />
+          <input type="text" value={props.guess} onChange={props.onGuessUpdate}></input>
           <PassButton />
         </form>
-      );
-    }
-
-    function GuessButton(){
-      return(
-        <button>Guess</button>
       );
     }
 
@@ -89,21 +82,32 @@
       const word = shuffledWordList.pop();
       const scrambledWord = shuffle(word);
 
+      // *** Stats ***
       const score = 0;
       const strikes = 3;
       const passes = 5;
 
+      // *** States ***
+      const [guess, setGuess] = React.useState('');
+
+      // *** Handlers ***
+      function updateGuessHandler(e){
+        setGuess(e.target.value);
+      }
+
+      // *** Testing ***
       console.log(wordList);
       console.log(shuffledWordList);
       console.log(word);
       console.log(scrambledWord);
+      console.log(guess);
 
       return(
         <>
           <h1>Scramble</h1>
           <Stats score={score} strikes={strikes} passes={passes} />
           <WordDisplay word={scrambledWord}/>
-          <PlayerArea />
+          <PlayerArea guess={guess} onGuessUpdate={updateGuessHandler}/>
         </>
       );
     }
