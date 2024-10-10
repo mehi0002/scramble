@@ -17,8 +17,9 @@
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root" class="container"></div>
   <script type="text/babel" src="app.js"></script>
+  
   <script type="text/babel">
     const root = ReactDOM.createRoot(document.getElementById('root'));
     
@@ -43,22 +44,63 @@
       );
     }
 
-    function WordDisplay(){}
-    function PlayerGuess(){}
-    function GuessButton(){}
-    function PassButton(){}
+    function WordDisplay(props){
+      return(
+       <p> {props.word} </p>
+      );
+    }
+
+    function PlayerArea(){
+      return(
+        <form>
+          <input type="text"></input>
+          <GuessButton />
+          <PassButton />
+        </form>
+      );
+    }
+
+    function GuessButton(){
+      return(
+        <button>Guess</button>
+      );
+    }
+
+    function PassButton(){
+      return(
+        <button>Pass</button>
+      );
+    }
 
     function App(){
+      const wordList = [
+        'treatment', 
+        'abundant', 
+        'mainstream', 
+        'productive',
+        'incentive',
+        'sensitivity',
+        'farewell',
+        'fastidious',
+        'classify',
+        'history'
+      ];
+      const shuffledWordList = shuffle(wordList);
+      const word = shuffledWordList.pop();
+      const scrambledWord = shuffle(word);
+
+      console.log(wordList);
+      console.log(shuffledWordList);
+      console.log(word);
+      console.log(scrambledWord);
 
       return(
-        <main classlist="container">
+        <>
           <h1>Scramble</h1>
           <Stats />
-          {/* <WordDisplay />
-          <PlayerGuess />
-          <GuessButton />
-          <PassButton /> */}
-        </main>
+          <WordDisplay word={scrambledWord}/>
+          <PlayerArea />
+        </>
       );
     }
 
