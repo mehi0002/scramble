@@ -7,14 +7,35 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Welcome to Scramble.</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/pico.min.css">
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 
 <body>
+  <div id="root"></div>
+  <script type="text/babel" src="app.js">
+    
+    function App(){
 
-  <script type="text/babel" src="app.js"></script>
+      return(
+        <>
+          <h1>Scramble</h1>
+          <Stats/>
+          <WordDisplay />
+          <PlayerGuess />
+          <GuessButton />
+          <PassButton />
+        </>
+      );
+    }
+
+    root.render(
+      <App />
+    );
+
+  </script>
 </body>
 
 </html>
