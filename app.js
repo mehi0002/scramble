@@ -76,9 +76,21 @@ function Guess(props){
 // ************** Pass Button ******************
 function PassButton(props){
 
+  // Handlers
+  function clickHandler(e){
+    e.preventDefault();
+    
+    if (props.wordList.length >0) {
+      props.usePass(props.passes);
+      props.nextWord(props.wordList)
+    }
+      
+     
+  }
+
   return(
     props.passes >= 1 ?
-      <button onClick={props.updatePasses}>Pass</button> :
+      <button onClick={clickHandler}>Pass</button> :
       <button disabled={true}>Pass</button>
   );
 }
@@ -99,26 +111,31 @@ function App(){
     'classify',
     'history'
   ];
+  const initialScore = 0;
+  const initialStrikes = 3;
+  const initialPasses = 3;
 
   // *** States ***
-  const [guess, setGuess] = React.useState('');
-  const [passes, setPasses] = React.useState(5);
-  const [score, setScore] = React.useState(0);
-  const [strikes, setStrikes] = React.useState(3);
   const [shuffledWordList, setShuffledWordList] = React.useState(shuffle(wordList));
   const [word, setWord] = React.useState(shuffledWordList[0]);
   const [scrambledWord, setScrambledWord] = React.useState(shuffle(word));
+  const [guess, setGuess] = React.useState('');
+  const [passes, setPasses] = React.useState(initialPasses);
+  const [score, setScore] = React.useState(initialScore);
+  const [strikes, setStrikes] = React.useState(initialStrikes);
+  const [reset, setReset] = React.useState(false);
 
   // *** Handlers ***     
-  // function nextWordHandler(){
+  function nextWordHandler(wordList){
     
-  //   if (shuffledWordList.length > 0){
-  //     console.log("getting the next word...");
-  //     setWord(shuffledWordList[0]);
-  //     setScrambledWord( shuffle(word) );
-  //     setShuffledWordList ( prevState => prevState.filter( entry => entry != word) );
-  //   }
-  // }
+    if (wordList.length >= 2){
+      console.log("getting the next word...");
+      
+      setWord(wordList[1]);
+      setScrambledWord( shuffle(wordList[1]) );
+      setShuffledWordList ( wordList.filter( entry => entry != wordList[0]) );
+    }
+  }
   
   // function onResetHandler(){
 
@@ -136,14 +153,28 @@ function App(){
 
   }
 
-  function usePassHandler(e){
-    e.preventDefault();
+  function resetHandler(){
+    setReset(true);
+  }
+
+  function usePassHandler(passes){
     console.log(`Pass Button - ${passes}`);
     
     if (passes >= 1) {
-      setPasses(prevState => prevState-1);
+      setPasses(passes - 1);
+
     }
     
+  }
+
+  if(reset){
+    setShuffledWordList(shuffle(wordList));
+    setWord(shuffledWordList[0]);
+    setScrambledWord(shuffle(word));
+    setShuffledWordList( prevState => prevState.filter(entry => entry != word));
+    setScore(initialScore);
+    setStrikes(initialStrikes);
+    setPasses(initialPasses);
   }
 
   // *** Testing ***
@@ -163,7 +194,7 @@ function App(){
       <WordDisplay word={scrambledWord}/>
       <form>
         <Guess guess={guess} onGuessUpdate={updateGuessHandler} />
-        <PassButton passes={passes} updatePasses={usePassHandler}/>
+        <PassButton passes={passes} usePass={usePassHandler} wordList={shuffledWordList} nextWord={nextWordHandler} />
       </form>
     </>
   );
