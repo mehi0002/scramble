@@ -68,8 +68,21 @@ function WordDisplay(props){
 
 // ************** Guess Input *****************
 function Guess(props){
+  
+  function submitHandler(e){
+    e.preventDefault();
+    console.log("submitting a guess...")
+    props.submitGuess(props.guess, props.word, props.wordList);
+  }
+
+  function updateGuess(e){
+    props.onGuessUpdate(e.target.value);
+  } 
+
   return(
-    <input type="text" value={props.guess} onChange={props.onGuessUpdate}></input>
+    <form onSubmit={submitHandler}>
+      <input type="text" value={props.guess} onChange={updateGuess}></input>
+    </form>
   );
 }
 
@@ -80,18 +93,17 @@ function PassButton(props){
   function clickHandler(e){
     e.preventDefault();
     
-    if (props.wordList.length >0) {
-      props.usePass(props.passes);
-      props.nextWord(props.wordList)
-    }
-      
-     
+    props.usePass(props.passes, props.wordList);   
   }
 
+  // *** Build ***
   return(
-    props.passes >= 1 ?
-      <button onClick={clickHandler}>Pass</button> :
-      <button disabled={true}>Pass</button>
+    <form>
+      { props.passes >= 1 ?
+        <button onClick={clickHandler}>Pass</button> :
+        <button disabled={true}>Pass</button>
+      }
+    </form>
   );
 }
 
@@ -112,7 +124,7 @@ function App(){
     'history'
   ];
   const initialScore = 0;
-  const initialStrikes = 3;
+  const initialStrikes = 0;
   const initialPasses = 3;
 
   // *** States ***
@@ -125,48 +137,55 @@ function App(){
   const [strikes, setStrikes] = React.useState(initialStrikes);
   const [reset, setReset] = React.useState(false);
 
-  // *** Handlers ***     
-  function nextWordHandler(wordList){
+  // *** Functions ***
+  function nextWord(wordList){
     
     if (wordList.length >= 2){
       console.log("getting the next word...");
-      
       setWord(wordList[1]);
       setScrambledWord( shuffle(wordList[1]) );
-      setShuffledWordList ( wordList.filter( entry => entry != wordList[0]) );
+    }
+    else
+      console.log("No more words - Game over!");
+
+    setShuffledWordList ( wordList.filter( entry => entry != wordList[0]) );
+
+  }
+
+  // *** Handlers ***     
+
+  // Update Guess
+  function updateGuessHandler(guess){
+    setGuess(guess);
+  }
+
+  // Submit Guess
+  function submitGuessHandler(guess, word, wordList){
+    console.log(`Guess: ${guess} - Answer: ${word}`);
+    
+    if (guess === word){
+      console.log("correct!")
+      setScore(prevScore => prevScore + 1);
+      setGuess('');
+      nextWord(wordList);
+    }
+    else{
+      console.log("Incorrrect!");
+      setStrikes(prevStrikes => prevStrikes  + 1);
+      setGuess('');
     }
   }
-  
-  // function onResetHandler(){
 
-  //   console.log("initializing reset");
-  //   setShuffledWordList( shuffle(wordList));
-  //   nextWordHandler();
-
-  // }
-
-  function updateGuessHandler(e){
-    setGuess(e.target.value);
-  }
-
-  function submitGuessHandler(e){
-
-  }
-
-  function resetHandler(){
-    setReset(true);
-  }
-
-  function usePassHandler(passes){
+  // Use Pass
+  function usePassHandler(passes, wordList){
     console.log(`Pass Button - ${passes}`);
     
-    if (passes >= 1) {
-      setPasses(passes - 1);
+    passes >= 1 && setPasses(passes - 1);
+    nextWord(wordList);
 
-    }
-    
   }
 
+  // *** Game Reset ****
   if(reset){
     setShuffledWordList(shuffle(wordList));
     setWord(shuffledWordList[0]);
@@ -176,6 +195,10 @@ function App(){
     setStrikes(initialStrikes);
     setPasses(initialPasses);
   }
+
+  // Disable and end game when out of words/strikes
+  if( strikes === 3 || shuffledWordList.length === 0)
+    console.log("disabling gameplay...");
 
   // *** Testing ***
   console.log(wordList);
@@ -192,10 +215,8 @@ function App(){
       <h1>Scramble</h1>
       <Stats score={score} strikes={strikes} passes={passes} />
       <WordDisplay word={scrambledWord}/>
-      <form>
-        <Guess guess={guess} onGuessUpdate={updateGuessHandler} />
-        <PassButton passes={passes} usePass={usePassHandler} wordList={shuffledWordList} nextWord={nextWordHandler} />
-      </form>
+      <Guess guess={guess} onGuessUpdate={updateGuessHandler} submitGuess={submitGuessHandler} word={word} wordList={shuffledWordList}/>
+      <PassButton passes={passes} usePass={usePassHandler} wordList={shuffledWordList} />
     </>
   );
       
