@@ -107,6 +107,23 @@ function PassButton(props){
   );
 }
 
+// ************** Reset Button ******************
+function ResetButton(props){
+
+  // Handlers
+  function clickHandler(e){
+    e.preventDefault();
+    props.reset();   
+  }
+
+  // *** Build ***
+  return(
+    <form>
+      <button onClick={clickHandler}>Play Again?</button> :
+    </form>
+  );
+}
+
 // ****************** Main App *******************
 function App(){
 
@@ -123,33 +140,94 @@ function App(){
     'classify',
     'history'
   ];
+  
+  let shuffledWordList = [];
+  let word = "";
+  let scrambledWord = "";
+  let loaded = true;
+  // let newGame;
   const initialScore = 0;
   const initialStrikes = 0;
   const initialPasses = 3;
-
+  
+  
   // *** States ***
-  const [shuffledWordList, setShuffledWordList] = React.useState(shuffle(wordList));
-  const [word, setWord] = React.useState(shuffledWordList[0]);
-  const [scrambledWord, setScrambledWord] = React.useState(shuffle(word));
+  // const [shuffledWordList, setShuffledWordList] = React.useState(shuffle(wordList));
+  // const [word, setWord] = React.useState(shuffledWordList[0]);
+  // const [scrambledWord, setScrambledWord] = React.useState(shuffle(word));
   const [guess, setGuess] = React.useState('');
-  const [passes, setPasses] = React.useState(initialPasses);
-  const [score, setScore] = React.useState(initialScore);
-  const [strikes, setStrikes] = React.useState(initialStrikes);
-  const [reset, setReset] = React.useState(false);
+  const [passes, setPasses] = React.useState(JSON.parse(localStorage.getItem('passes')) || initialPasses);
+  const [score, setScore] = React.useState(JSON.parse(localStorage.getItem('score')) || initialScore);
+  const [strikes, setStrikes] = React.useState(JSON.parse(localStorage.getItem('strikes')) || initialStrikes);
+  const [gameOver, setGameOver] = React.useState(false);
+  // const [reset, setReset] = React.useState(false);  
+  const [newGame, setNewGame] = React.useState(true); 
 
   // *** Functions ***
+  function loadGame(){
+    console.log("Loading game data...");
+
+    shuffledWordList = JSON.parse(localStorage.getItem('shuffledWordList'));
+    word = localStorage.getItem('word');
+    scrambledWord = localStorage.getItem('scrambledWord');
+    // newGame = JSON.parse(localStorage.getItem('newGame'));
+    // setScore(JSON.parse(localStorage.getItem('score')) );
+    // setStrikes( JSON.parse(localStorage.getItem('strikes')) );
+    // setPasses( JSON.parse(localStorage.getItem('passes')) );
+    // setGameOver( JSON.parse(localStorage.getItem('gameOver')));
+
+  }
+
+  function saveGame(){
+    console.log("Saving game data...");
+
+    localStorage.setItem('shuffledWordList', JSON.stringify(shuffledWordList));
+    localStorage.setItem('word', word);
+    localStorage.setItem('scrambledWord', scrambledWord);
+    localStorage.setItem('score', JSON.stringify(score));
+    localStorage.setItem('strikes', JSON.stringify(strikes));
+    localStorage.setItem('passes', JSON.stringify(passes));
+    localStorage.setItem('gameOver', JSON.stringify(gameOver));
+    localStorage.setItem('newGame', JSON.stringify(newGame));
+}
+
+// function startNewGame(){
+//   console.log("The dawn of a new game...");
+//   localStorage.clear();
+
+//   shuffledWordList = shuffle(wordList);
+//   word = shuffledWordList[0];
+//   scrambledWord = shuffle(word);
+//   newGame = false;
+//   saveGame();
+//   setScore(0);
+//   setStrikes(0);
+//   setPasses(3);  
+// }
+
   function nextWord(wordList){
     
+    // if (wordList.length >= 2){
+    //   console.log("getting the next word...");
+    //   setWord(wordList[1]);
+    //   setScrambledWord( shuffle(wordList[1]) );
+    // }
+    // else
+    //   console.log("No more words - Game over!");
+
+    // setShuffledWordList ( wordList.filter( entry => entry != wordList[0]) );
+
     if (wordList.length >= 2){
       console.log("getting the next word...");
-      setWord(wordList[1]);
-      setScrambledWord( shuffle(wordList[1]) );
+
+      word = wordList[1];
+      scrambledWord = shuffle(wordList[1]);
+      ShuffledWordList = wordList.filter( entry => entry != wordList[0]) ;
     }
     else
-      console.log("No more words - Game over!");
+      setgameOver(true);
 
-    setShuffledWordList ( wordList.filter( entry => entry != wordList[0]) );
-
+    saveGame();
   }
 
   // *** Handlers ***     
@@ -166,14 +244,18 @@ function App(){
     if (guess === word){
       console.log("correct!")
       setScore(prevScore => prevScore + 1);
-      setGuess('');
       nextWord(wordList);
     }
     else{
       console.log("Incorrrect!");
-      setStrikes(prevStrikes => prevStrikes  + 1);
-      setGuess('');
+      
+      strikes == 2 ? 
+        setgameOver(true) :
+        setStrikes(prevStrikes => prevStrikes  + 1);
     }
+
+    setGuess('');
+    saveGame();
   }
 
   // Use Pass
@@ -182,23 +264,63 @@ function App(){
     
     passes >= 1 && setPasses(passes - 1);
     nextWord(wordList);
-
+    saveGame();
   }
 
-  // *** Game Reset ****
-  if(reset){
-    setShuffledWordList(shuffle(wordList));
-    setWord(shuffledWordList[0]);
-    setScrambledWord(shuffle(word));
-    setShuffledWordList( prevState => prevState.filter(entry => entry != word));
-    setScore(initialScore);
-    setStrikes(initialStrikes);
-    setPasses(initialPasses);
-  }
+  // // *** Game Reset ****
+  // function resetGameHandler(){
+  //   setShuffledWordList(shuffle(wordList));
+  //   setWord(shuffledWordList[0]);
+  //   setScrambledWord(shuffle(word));
+  //   setShuffledWordList( prevState => prevState.filter(entry => entry != word));
+  //   setScore(initialScore);
+  //   setStrikes(initialStrikes);
+  //   setPasses(initialPasses);
+  // }
 
   // Disable and end game when out of words/strikes
-  if( strikes === 3 || shuffledWordList.length === 0)
-    console.log("disabling gameplay...");
+  // if( strikes === 3 || shuffledWordList.length === 0){
+  //   console.log("disabling gameplay...");
+  //   setGuess("Game Over!");
+  //   setgameOver(true);
+  // }
+
+  // if (newGame === true){
+  //   if( localStorage.getItem('word') === null){
+  //     console.log("The dawning of a new game...");
+  
+
+  //     shuffledWordList = shuffle(wordList);
+  //     word = shuffledWordList[0];
+  //     scrambledWord = shuffle(word);
+  //     setScore(0);
+  //     setStrikes(0);
+  //     setPasses(3);
+  //     setgameOver(false);
+  //     // setNewGame(false);
+  //     loaded = true;
+  //     saveGame();
+  //   }
+  //   else{
+  //     loadGame();
+  //   }
+
+
+  // }
+  
+  if(newGame === true){
+    console.log("The dawn of a new game...");
+    localStorage.clear();
+
+    shuffledWordList = shuffle(wordList);
+    word = shuffledWordList[0];
+    scrambledWord = shuffle(word);
+    saveGame();
+    setNewGame(prevState => !prevState);
+  }
+  else{
+    loadGame();
+  }
 
   // *** Testing ***
   console.log(wordList);
@@ -206,7 +328,11 @@ function App(){
   console.log(`Scramble: ${scrambledWord}`);
   console.log(`Answer: ${word}`);
   console.log(`Guess: ${guess}`);
+  console.log(`Passes: ${score}`);
+  console.log(`Passes: ${strikes}`);
   console.log(`Passes: ${passes}`);
+  // console.log(`Game Over?: ${gameOver}`);
+  console.log(`New game? : ${newGame}`);
 
   // *** Build ***
 
@@ -215,8 +341,14 @@ function App(){
       <h1>Scramble</h1>
       <Stats score={score} strikes={strikes} passes={passes} />
       <WordDisplay word={scrambledWord}/>
-      <Guess guess={guess} onGuessUpdate={updateGuessHandler} submitGuess={submitGuessHandler} word={word} wordList={shuffledWordList}/>
-      <PassButton passes={passes} usePass={usePassHandler} wordList={shuffledWordList} />
+      { gameOver ? 
+        <ResetButton reset={resetGameHandler}/> :
+        <>
+          <Guess guess={guess} onGuessUpdate={updateGuessHandler} submitGuess={submitGuessHandler} word={word} wordList={shuffledWordList}/>
+          <PassButton passes={passes} usePass={usePassHandler} wordList={shuffledWordList} />
+        </>
+      }
+      
     </>
   );
       
