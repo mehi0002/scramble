@@ -92,17 +92,13 @@ function PassButton(props){
   // Handlers
   function clickHandler(e){
     e.preventDefault();
-    
     props.usePass(props.passes, props.wordList);   
   }
 
   // *** Build ***
   return(
     <form>
-      { props.passes >= 1 ?
-        <button onClick={clickHandler}>Pass</button> :
-        <button disabled={true}>Pass</button>
-      }
+        <button onClick={clickHandler}>Pass</button>
     </form>
   );
 }
@@ -113,13 +109,15 @@ function ResetButton(props){
   // Handlers
   function clickHandler(e){
     e.preventDefault();
+    console.log(`Clicked the reset button`);
     props.reset();   
   }
 
   // *** Build ***
   return(
     <form>
-      <button onClick={clickHandler}>Play Again?</button> :
+      <p>Game Over!</p>
+      <button onClick={clickHandler}>Play Again?</button>
     </form>
   );
 }
@@ -222,10 +220,10 @@ function App(){
 
       word = wordList[1];
       scrambledWord = shuffle(wordList[1]);
-      ShuffledWordList = wordList.filter( entry => entry != wordList[0]) ;
+      shuffledWordList = wordList.filter( entry => entry != wordList[0]) ;
     }
     else
-      setgameOver(true);
+      setGameOver(true);
 
     saveGame();
   }
@@ -249,9 +247,8 @@ function App(){
     else{
       console.log("Incorrrect!");
       
-      strikes == 2 ? 
-        setgameOver(true) :
-        setStrikes(prevStrikes => prevStrikes  + 1);
+      setStrikes(prevStrikes => prevStrikes  + 1);
+      strikes >= 2 && setGameOver(true);
     }
 
     setGuess('');
@@ -262,9 +259,28 @@ function App(){
   function usePassHandler(passes, wordList){
     console.log(`Pass Button - ${passes}`);
     
-    passes >= 1 && setPasses(passes - 1);
-    nextWord(wordList);
-    saveGame();
+    setPasses(prevPasses => prevPasses - 1);
+    setGuess('');
+    
+    if (passes > 1){
+      nextWord(wordList);
+      saveGame();
+    }
+    else 
+      setGameOver(true);
+
+  }
+
+  function resetGameHandler(){
+    console.log(`Resetting game... `);
+
+    localStorage.clear();
+
+    setScore(initialScore);
+    setStrikes(initialStrikes);
+    setPasses(initialPasses);
+    setGuess('');
+    setGameOver(false);
   }
 
   // // *** Game Reset ****
@@ -282,7 +298,7 @@ function App(){
   // if( strikes === 3 || shuffledWordList.length === 0){
   //   console.log("disabling gameplay...");
   //   setGuess("Game Over!");
-  //   setgameOver(true);
+  //   setGameOver(true);
   // }
 
   
@@ -318,8 +334,8 @@ function App(){
   console.log(`Scramble: ${scrambledWord}`);
   console.log(`Answer: ${word}`);
   console.log(`Guess: ${guess}`);
-  console.log(`Passes: ${score}`);
-  console.log(`Passes: ${strikes}`);
+  console.log(`Score: ${score}`);
+  console.log(`Strikes: ${strikes}`);
   console.log(`Passes: ${passes}`);
   // console.log(`Game Over?: ${gameOver}`);
   console.log(`New game? : ${newGame}`);
@@ -329,8 +345,10 @@ function App(){
   return(
     <>
       <h1>Scramble</h1>
-      <Stats score={score} strikes={strikes} passes={passes} />
-      <WordDisplay word={scrambledWord}/>
+
+      <Stats score={score} strikes={strikes} passes={passes} disabled={gameOver}/>
+      <WordDisplay word={scrambledWord} disabled={gameOver}/>
+      
       { gameOver ? 
         <ResetButton reset={resetGameHandler}/> :
         <>
