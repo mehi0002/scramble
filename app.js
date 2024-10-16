@@ -145,7 +145,7 @@ function App(){
   let word = "";
   let scrambledWord = "";
   let loaded = true;
-  // let newGame;
+  let newGame = true;
   const initialScore = 0;
   const initialStrikes = 0;
   const initialPasses = 3;
@@ -161,7 +161,7 @@ function App(){
   const [strikes, setStrikes] = React.useState(JSON.parse(localStorage.getItem('strikes')) || initialStrikes);
   const [gameOver, setGameOver] = React.useState(false);
   // const [reset, setReset] = React.useState(false);  
-  const [newGame, setNewGame] = React.useState(true); 
+  // const [newGame, setNewGame] = React.useState(true); 
 
   // *** Functions ***
   function loadGame(){
@@ -170,7 +170,7 @@ function App(){
     shuffledWordList = JSON.parse(localStorage.getItem('shuffledWordList'));
     word = localStorage.getItem('word');
     scrambledWord = localStorage.getItem('scrambledWord');
-    // newGame = JSON.parse(localStorage.getItem('newGame'));
+    newGame = JSON.parse(localStorage.getItem('newGame'));
     // setScore(JSON.parse(localStorage.getItem('score')) );
     // setStrikes( JSON.parse(localStorage.getItem('strikes')) );
     // setPasses( JSON.parse(localStorage.getItem('passes')) );
@@ -285,41 +285,31 @@ function App(){
   //   setgameOver(true);
   // }
 
-  // if (newGame === true){
-  //   if( localStorage.getItem('word') === null){
-  //     console.log("The dawning of a new game...");
   
+  // if(newGame === true){
+  //   console.log("The dawn of a new game...");
+  //   localStorage.clear();
 
-  //     shuffledWordList = shuffle(wordList);
-  //     word = shuffledWordList[0];
-  //     scrambledWord = shuffle(word);
-  //     setScore(0);
-  //     setStrikes(0);
-  //     setPasses(3);
-  //     setgameOver(false);
-  //     // setNewGame(false);
-  //     loaded = true;
-  //     saveGame();
-  //   }
-  //   else{
-  //     loadGame();
-  //   }
-
-
+  //   shuffledWordList = shuffle(wordList);
+  //   word = shuffledWordList[0];
+  //   scrambledWord = shuffle(word);
+  //   saveGame();
+  //   setNewGame(prevState => !prevState);
   // }
-  
-  if(newGame === true){
-    console.log("The dawn of a new game...");
-    localStorage.clear();
+  // else{
+  //   loadGame();
+  // }
 
+  loadGame();
+  console.log(`New game?: ${newGame}`);
+
+  if (newGame != false){
+    console.log("The dawn of a new game...");
     shuffledWordList = shuffle(wordList);
     word = shuffledWordList[0];
     scrambledWord = shuffle(word);
+    newGame = false;
     saveGame();
-    setNewGame(prevState => !prevState);
-  }
-  else{
-    loadGame();
   }
 
   // *** Testing ***
