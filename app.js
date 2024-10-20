@@ -142,7 +142,6 @@ function App(){
   let shuffledWordList = [];
   let word = "";
   let scrambledWord = "";
-  let loaded = true;
   let newGame = true;
   const initialScore = 0;
   const initialStrikes = 0;
@@ -150,16 +149,18 @@ function App(){
   
   
   // *** States ***
-  // const [shuffledWordList, setShuffledWordList] = React.useState(shuffle(wordList));
-  // const [word, setWord] = React.useState(shuffledWordList[0]);
-  // const [scrambledWord, setScrambledWord] = React.useState(shuffle(word));
   const [guess, setGuess] = React.useState('');
   const [passes, setPasses] = React.useState(JSON.parse(localStorage.getItem('passes')) || initialPasses);
   const [score, setScore] = React.useState(JSON.parse(localStorage.getItem('score')) || initialScore);
   const [strikes, setStrikes] = React.useState(JSON.parse(localStorage.getItem('strikes')) || initialStrikes);
-  const [gameOver, setGameOver] = React.useState(false);
-  // const [reset, setReset] = React.useState(false);  
+  const [gameOver, setGameOver] = React.useState(JSON.parse(localStorage.getItem('gameOver')) || false);
   // const [newGame, setNewGame] = React.useState(true); 
+
+  // *** Effects ***
+  React.useEffect(() => {localStorage.setItem('score', score)}, [score]);
+  React.useEffect(() => {localStorage.setItem('strikes', strikes)}, [strikes]);
+  React.useEffect(() => {localStorage.setItem('passes', passes)}, [passes]);
+  React.useEffect(() => {localStorage.setItem('gameOver', gameOver)}, [gameOver]);
 
   // *** Functions ***
   function loadGame(){
@@ -169,11 +170,6 @@ function App(){
     word = localStorage.getItem('word');
     scrambledWord = localStorage.getItem('scrambledWord');
     newGame = JSON.parse(localStorage.getItem('newGame'));
-    // setScore(JSON.parse(localStorage.getItem('score')) );
-    // setStrikes( JSON.parse(localStorage.getItem('strikes')) );
-    // setPasses( JSON.parse(localStorage.getItem('passes')) );
-    // setGameOver( JSON.parse(localStorage.getItem('gameOver')));
-
   }
 
   function saveGame(){
@@ -182,10 +178,6 @@ function App(){
     localStorage.setItem('shuffledWordList', JSON.stringify(shuffledWordList));
     localStorage.setItem('word', word);
     localStorage.setItem('scrambledWord', scrambledWord);
-    localStorage.setItem('score', JSON.stringify(score));
-    localStorage.setItem('strikes', JSON.stringify(strikes));
-    localStorage.setItem('passes', JSON.stringify(passes));
-    localStorage.setItem('gameOver', JSON.stringify(gameOver));
     localStorage.setItem('newGame', JSON.stringify(newGame));
 }
 
@@ -204,16 +196,6 @@ function App(){
 // }
 
   function nextWord(wordList){
-    
-    // if (wordList.length >= 2){
-    //   console.log("getting the next word...");
-    //   setWord(wordList[1]);
-    //   setScrambledWord( shuffle(wordList[1]) );
-    // }
-    // else
-    //   console.log("No more words - Game over!");
-
-    // setShuffledWordList ( wordList.filter( entry => entry != wordList[0]) );
 
     if (wordList.length >= 2){
       console.log("getting the next word...");
