@@ -60,7 +60,7 @@ function Stats(props){
       <tbody>
         <tr>
           <td>{props.score}</td>
-          <td>{props.strikes}</td>
+          { props.strikes >= 3 ? <td className="alert">{props.strikes}</td> : <td>{props.strikes}</td> }
           <td>{props.passes}</td>
         </tr>
       </tbody>
@@ -101,13 +101,13 @@ function PassButton(props){
   // Handlers
   function clickHandler(e){
     e.preventDefault();
-    props.usePass(props.passes, props.wordList);   
+    props.usePass(props.passes);   
   }
 
   // *** Build ***
   return(
     <form>
-        <button onClick={clickHandler}>Pass</button>
+        <button disabled={props.disabled} onClick={clickHandler}>Pass</button>
     </form>
   );
 }
@@ -161,11 +161,10 @@ function App(){
   // *** States ***
   const [guess, setGuess] = React.useState('');
   const [message, setMessage] = React.useState(localStorage.getItem('message') || initialMessage);
-  const [passes, setPasses] = React.useState(JSON.parse(localStorage.getItem('passes')) || initialPasses);
+  const [passes, setPasses] = React.useState(JSON.parse(localStorage.getItem('passes')) === null ? initialPasses : JSON.parse(localStorage.getItem('passes')));
   const [score, setScore] = React.useState(JSON.parse(localStorage.getItem('score')) || initialScore);
   const [strikes, setStrikes] = React.useState(JSON.parse(localStorage.getItem('strikes')) || initialStrikes);
   const [gameOver, setGameOver] = React.useState(JSON.parse(localStorage.getItem('gameOver')) || false);
-  // const [newGame, setNewGame] = React.useState(true); 
 
   // *** Effects ***
   React.useEffect(() => {localStorage.setItem('score', score)}, [score]);
@@ -236,7 +235,7 @@ function App(){
   }
 
   // Use Pass
-  function usePassHandler(passes, wordList){
+  function usePassHandler(passes){
     console.log(`Pass Button - ${passes}`);
     
     setPasses(prevPasses => prevPasses - 1);
@@ -247,8 +246,6 @@ function App(){
       nextWord(wordList);
       saveGame();
     }
-    else 
-      setGameOver(true);
 
   }
 
@@ -291,6 +288,11 @@ function App(){
   console.log(`Game Over?: ${gameOver}`);
   console.log(`New game? : ${newGame}`);
 
+  if(JSON.parse(localStorage.getItem('strikes')) === null)
+    console.log("null strikes stored");
+  else
+    console.log(`${localStorage.getItem('strikes')} strikes stored`);
+
   // *** Build ***
   return(
     <article>
@@ -306,7 +308,10 @@ function App(){
         <ResetButton reset={resetGameHandler}/> :
         <>
           <Guess guess={guess} onGuessUpdate={updateGuessHandler} submitGuess={submitGuessHandler} word={word} wordList={shuffledWordList}/>
-          <PassButton passes={passes} usePass={usePassHandler} wordList={shuffledWordList} />
+          {passes > 0 ? 
+            <PassButton passes={passes} usePass={usePassHandler} disabled={false}/> :
+            <PassButton passes={passes} usePass={usePassHandler} disabled={true}/>
+          }
         </>
       }
       
