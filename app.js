@@ -35,12 +35,10 @@ function shuffle (src) {
  **********************************************/
 const root = ReactDOM.createRoot(document.getElementById('root'));
     
-// ************ Message Bar **************
-function Message(props){
-  
-  // *** Build ***
+// ************* App Title ****************
+function Title(props){
   return(
-    <p id="message">{props.msg}</p>
+    <h1>{props.children}</h1>
   );
 }
 
@@ -60,11 +58,18 @@ function Stats(props){
       <tbody>
         <tr>
           <td>{props.score}</td>
-          { props.strikes >= 3 ? <td className="alert">{props.strikes}</td> : <td>{props.strikes}</td> }
+          <td>{props.strikes}</td>
           <td>{props.passes}</td>
         </tr>
       </tbody>
     </table>
+  );
+}
+
+// ************** Message Display *****************
+function Message(props){
+  return(
+    <p id="message">{props.message}</p>
   );
 }
 
@@ -76,21 +81,27 @@ function WordDisplay(props){
 }
 
 // ************** Guess Input *****************
+// Collect the user input and send to the main app upon submission
 function Guess(props){
+  const [guess, setGuess] = React.useState(props.guess || '');
+  React.useEffect( () => {console.log(`guess: ${guess}`)}, [guess]);
   
+  // *** Handlers ***
   function submitHandler(e){
     e.preventDefault();
-    console.log("submitting a guess...")
-    props.submitGuess(props.guess, props.word, props.wordList);
+    console.log("submitting a guess...");
+    props.submitGuess(guess);
+    setGuess('');
   }
 
   function updateGuess(e){
-    props.onGuessUpdate(e.target.value);
+    setGuess(e.target.value);
   } 
 
+  // *** Build ***
   return(
     <form onSubmit={submitHandler}>
-      <input type="text" value={props.guess} onChange={updateGuess}></input>
+      <input type="text" value={guess} onChange={updateGuess}></input>
     </form>
   );
 }
@@ -98,37 +109,31 @@ function Guess(props){
 // ************** Pass Button ******************
 function PassButton(props){
 
-  // Handlers
+  // *** Handlers ***
   function clickHandler(e){
     e.preventDefault();
-    props.usePass(props.passes);   
+    props.usePass(); 
   }
 
   // *** Build ***
   return(
-    <form>
-        <button disabled={props.disabled} onClick={clickHandler}>Pass</button>
-    </form>
+    <button disabled={props.disabled} onClick={clickHandler}>Pass</button>
   );
 }
 
-// ************** Reset Button ******************
+// ***************** Reset Button ****************
 function ResetButton(props){
 
-  // Handlers
-  function clickHandler(e){
-    e.preventDefault();
-    console.log(`Clicked the reset button`);
-    props.reset();   
-  }
+ // *** Handlers ***
+ function clickHandler(e){
+  e.preventDefault();
+  props.onReset(); 
+}
 
-  // *** Build ***
-  return(
-    <form>
-      <p>Game Over!</p>
-      <button onClick={clickHandler}>Play Again?</button>
-    </form>
-  );
+// *** Build ***
+return(
+  <button onClick={clickHandler}>New Game?</button>
+);
 }
 
 // ****************** Main App *******************
@@ -147,161 +152,97 @@ function App(){
     'dress',
     'child'
   ];
-  
-  let shuffledWordList = [];
-  let word = "";
-  let scrambledWord = "";
-  let newGame = true;
+
   const initialScore = 0;
   const initialStrikes = 0;
+  const maxStrikes = 3;
   const initialPasses = 3;
-  const initialMessage = '';
-  
+  const initialMessage = "Guess the scrambled word...";
+
   // *** States ***
-  const [guess, setGuess] = React.useState('');
-  const [message, setMessage] = React.useState(localStorage.getItem('message') || initialMessage);
-  const [passes, setPasses] = React.useState(JSON.parse(localStorage.getItem('passes')) === null ? initialPasses : JSON.parse(localStorage.getItem('passes')));
-  const [score, setScore] = React.useState(JSON.parse(localStorage.getItem('score')) || initialScore);
-  const [strikes, setStrikes] = React.useState(JSON.parse(localStorage.getItem('strikes')) || initialStrikes);
-  const [gameOver, setGameOver] = React.useState(JSON.parse(localStorage.getItem('gameOver')) || false);
+  const [shuffledWordList, setShuffledWordList] = React.useState(shuffle(wordList));
+  const [word, setWord] = React.useState(shuffledWordList[0]);
+  const [scrambledWord, setScrambledWord] = React.useState(shuffle(word));
+  const [passes, setPasses] = React.useState(initialPasses);
+  const [score, setScore] = React.useState(initialScore);
+  const [strikes, setStrikes] = React.useState(initialStrikes);
+  const [gameOver, setGameOver] = React.useState(false);
+  const [message, setMessage] = React.useState(initialMessage);
 
   // *** Effects ***
-  React.useEffect(() => {localStorage.setItem('score', score)}, [score]);
-  React.useEffect(() => {localStorage.setItem('strikes', strikes)}, [strikes]);
-  React.useEffect(() => {localStorage.setItem('passes', passes)}, [passes]);
-  React.useEffect(() => {localStorage.setItem('gameOver', gameOver)}, [gameOver]);
-  React.useEffect(() => {localStorage.setItem('message', message)}, [message]);
+  React.useEffect( () => {                            // end game if max strikes
+    if (strikes === maxStrikes){
+      setMessage("3 strikes, you're out");
+      endGame();
+    }
+    }, [strikes]);   
+
+  React.useEffect( () => {                            // scramble new word and remove from list
+      setScrambledWord(shuffle(word));
+      setShuffledWordList ( prevState => prevState.filter( entry => entry != word) );
+    }, [word]);       
 
   // *** Functions ***
-  // Save Game
-  function saveGame(){
-    console.log("Saving game data...");
-
-    localStorage.setItem('shuffledWordList', JSON.stringify(shuffledWordList));
-    localStorage.setItem('word', word);
-    localStorage.setItem('scrambledWord', scrambledWord);
-    localStorage.setItem('newGame', JSON.stringify(newGame));
-  }
-
-  // End Game
-  function endGame(){
-    console.log("ending the game...");
-
+  
+  //End Game
+  function endGame(msg){
+    console.log("Game over!");
     setGameOver(true);
-    scrambledWord = "";
-    saveGame();
   }
 
-  // Next Word 
+  // Check Guess
+  function checkGuess(guess){
+    console.log(`Guess: ${guess} - Answer: ${word}`);
+    
+    if (guess.toLowerCase() === word.toLowerCase()){      // IF correct, add a point and get the next word
+      setMessage("correct! Next word...");
+      setScore(prevScore => prevScore + 1);
+      nextWord();
+    }
+    else{
+      setStrikes(prevStrikes => prevStrikes  + 1);        // If wrong, add a stike
+      setMessage("Incorrrect! Try again...");
+    }
+  }
+  
+  // Next Word
   function nextWord(){
-
-    if (shuffledWordList.length >= 2){
-      console.log("getting the next word...");
-
-      word = shuffledWordList[1];
-      scrambledWord = shuffle(shuffledWordList[1]);
-      shuffledWordList = shuffledWordList.filter( entry => entry != shuffledWordList[0]);
-      saveGame();
+    
+    if (shuffledWordList.length === 0){             // If there are no words left, end the game
+      console.log("No more words");
+      setMessage("Game Over!");
+      endGame();
     }
     else {
-      console.log("out of words");
-      endGame();
+      console.log("getting the next word...");      // get the next word in the list
+      setWord(shuffledWordList[0]);
     }
 
   }
 
   // *** Handlers ***     
 
-  // Update Guess
-  function updateGuessHandler(guess){
-    setGuess(guess);
-  }
-
   // Submit Guess
-  function submitGuessHandler(guess, word, wordList){
-    console.log(`Guess: ${guess} - Answer: ${word}`);
-    
-    if (guess === word){                                  // *** correct answer **
-      setScore(prevScore => prevScore + 1);                 
-      
-      if (wordList.length === 1){                         // end game if out of words
-        setMessage("You win!");
-        endGame();
-      }
-      else{                                                // continue to next word
-        setMessage("Correct!");
-        nextWord();
-      }
-      
-    }
-    else{                                                   // *** wrong answer ***
-      setStrikes(prevStrikes => prevStrikes  + 1);
-
-      if (strikes >= 2){                                    // 3 strikes, your out. End game
-        setMessage("3 strikes, you're out!");
-        endGame();
-      }
-      else                                                  // continue ot next word
-        setMessage("Incorrrect!");
-    }
-
-    setGuess('');
-    saveGame();
+  function submitGuessHandler(guess){
+    checkGuess(guess);
   }
 
   // Use Pass
-  function usePassHandler(passes){
-    console.log(`Using a Pass...`);
-    
-    setPasses(prevPasses => prevPasses - 1);                // Update passes
-    setGuess('');
-    setMessage('Passed');
-    
-    if (passes >= 1){
-      
-      if( shuffledWordList.length === 1 ){                  // End game if out of words
-        setMessage("You win!");
-        endGame();
-      }
-      else                                                  // go to next word
-        nextWord();
-    }
-
+  function usePassHandler(){
+    console.log(`Pass Button - ${passes}`);
+    setPasses(PrevState => PrevState - 1);
+    nextWord(wordList);
   }
 
-  // Reset Game
+  // Start a new game
   function resetGameHandler(){
-    console.log(`Resetting game... `);
-
-    localStorage.clear();
-
+    setShuffledWordList( shuffle(wordList) );
+    nextWord();
     setScore(initialScore);
     setStrikes(initialStrikes);
     setPasses(initialPasses);
-    setGuess('');
     setMessage(initialMessage);
     setGameOver(false);
-  }
-
-  // *** On Load ***
-  newGame = JSON.parse(localStorage.getItem('newGame'));    // Check if there is a game saved
-  console.log(`New game?: ${newGame}`);
-
-  if (newGame != false){                                    // No data, start a new game
-    console.log("The dawn of a new game...");
-    
-    shuffledWordList = shuffle(wordList);
-    word = shuffledWordList[0];
-    scrambledWord = shuffle(word);
-    newGame = false;
-    saveGame();
-  }
-  else {                                                    // loading saved data
-    console.log("Loading game data...");
-
-    shuffledWordList = JSON.parse(localStorage.getItem('shuffledWordList'));
-    word = localStorage.getItem('word');
-    scrambledWord = localStorage.getItem('scrambledWord');
   }
 
   // *** Testing ***
@@ -309,32 +250,27 @@ function App(){
   console.log(shuffledWordList);
   console.log(`Scramble: ${scrambledWord}`);
   console.log(`Answer: ${word}`);
-  console.log(`Guess: ${guess}`);
   console.log(`Score: ${score}`);
   console.log(`Strikes: ${strikes}`);
   console.log(`Passes: ${passes}`);
-  console.log(`Game Over?: ${gameOver}`);
-  console.log(`New game? : ${newGame}`);
+  console.log(`Game Over: ${gameOver}`);
 
   // *** Build ***
+
   return(
     <article>
-
       <header>
-        <h1>Scramble</h1>
-        <Stats score={score} strikes={strikes} passes={passes} disabled={gameOver}/>
-        <Message msg={message} />
-        <WordDisplay word={scrambledWord} disabled={gameOver}/>
+        <Title>Scramble</Title>
+        <Stats score={score} strikes={strikes} passes={passes} />
+        <Message message={message}/>
+        <WordDisplay word={scrambledWord}/>
       </header>
-      
+    
       { gameOver ? 
-        <ResetButton reset={resetGameHandler}/> :
+        < ResetButton onReset={resetGameHandler}/> :
         <>
-          <Guess guess={guess} onGuessUpdate={updateGuessHandler} submitGuess={submitGuessHandler} word={word} wordList={shuffledWordList}/>
-          {passes > 0 ? 
-            <PassButton passes={passes} usePass={usePassHandler} disabled={false}/> :
-            <PassButton passes={passes} usePass={usePassHandler} disabled={true}/>
-          }
+          <Guess submitGuess={submitGuessHandler} />
+          <PassButton usePass={usePassHandler} disabled={ passes === 0 ? true : false} />
         </>
       }
       
