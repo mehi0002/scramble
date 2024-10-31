@@ -160,16 +160,34 @@ function App(){
   const initialMessage = "Guess the scrambled word...";
 
   // *** States ***
-  const [shuffledWordList, setShuffledWordList] = React.useState(shuffle(wordList));
-  const [word, setWord] = React.useState(shuffledWordList[0]);
-  const [scrambledWord, setScrambledWord] = React.useState(shuffle(word));
-  const [passes, setPasses] = React.useState(initialPasses);
-  const [score, setScore] = React.useState(initialScore);
-  const [strikes, setStrikes] = React.useState(initialStrikes);
-  const [gameOver, setGameOver] = React.useState(false);
-  const [message, setMessage] = React.useState(initialMessage);
+  const [shuffledWordList, setShuffledWordList] = useLocalStorage('shuffledWordList', shuffle(wordList));
+  const [word, setWord] = useLocalStorage('word', shuffledWordList[0]);
+  const [scrambledWord, setScrambledWord] = useLocalStorage('scrambledWord', shuffle(word));
+  const [passes, setPasses] = useLocalStorage('passes', initialPasses);
+  const [score, setScore] = useLocalStorage('score', initialScore);
+  const [strikes, setStrikes] = useLocalStorage('strikes', initialStrikes);
+  const [gameOver, setGameOver] = useLocalStorage('gameOver', false);
+  const [message, setMessage] = useLocalStorage('message', initialMessage);
 
   // *** Effects ***
+
+  // Set up: Initialize game data in local storage
+  React.useEffect( () => {                          
+    localStorage.setItem('game', JSON.stringify({
+      shuffledWordList,
+      word,
+      scrambledWord,
+      passes,
+      score,
+      strikes,
+      message,
+      gameOver
+    }));
+  }
+
+  );
+
+  // Strike out
   React.useEffect( () => {                            // end game if max strikes
     if (strikes === maxStrikes){
       setMessage("3 strikes, you're out");
@@ -177,12 +195,19 @@ function App(){
     }
     }, [strikes]);   
 
+  // Scramble new word
   React.useEffect( () => {                            // scramble new word and remove from list
       setScrambledWord(shuffle(word));
       setShuffledWordList ( prevState => prevState.filter( entry => entry != word) );
     }, [word]);       
 
   // *** Functions ***
+
+  // Use local storage
+  function useLocalStorage(key, initialState) {
+    const game = JSON.parse(localStorage.getItem('game'))
+    return React.useState(game ? game[key] : initialState)
+  }
   
   //End Game
   function endGame(msg){
