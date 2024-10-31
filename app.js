@@ -58,7 +58,7 @@ function Stats(props){
       <tbody>
         <tr>
           <td>{props.score}</td>
-          <td>{props.strikes}</td>
+          <td className={props.style}>{props.strikes}</td>
           <td>{props.passes}</td>
         </tr>
       </tbody>
@@ -84,12 +84,10 @@ function WordDisplay(props){
 // Collect the user input and send to the main app upon submission
 function Guess(props){
   const [guess, setGuess] = React.useState(props.guess || '');
-  React.useEffect( () => {console.log(`guess: ${guess}`)}, [guess]);
   
   // *** Handlers ***
   function submitHandler(e){
     e.preventDefault();
-    console.log("submitting a guess...");
     props.submitGuess(guess);
     setGuess('');
   }
@@ -205,15 +203,13 @@ function App(){
   
   //End Game
   function endGame(msg){
-    console.log("Game over!");
     setGameOver(true);
   }
 
   // Check Guess
   function checkGuess(guess){
-    console.log(`Guess: ${guess} - Answer: ${word}`);
     
-    if (guess.toLowerCase() === word.toLowerCase()){      // IF correct, add a point and get the next word
+    if (guess.toLowerCase() === word.toLowerCase()){      // If correct, add a point and get the next word
       setMessage("Correct! Next word...");
       setScore(prevScore => prevScore + 1);
       nextWord();
@@ -227,14 +223,12 @@ function App(){
   // Next Word
   function nextWord(){
     
-    if (shuffledWordList.length === 0){             // If there are no words left, end the game
-      console.log("No more words");
+    if (shuffledWordList.length === 0){                   // If there are no words left, end the game
       setMessage("Game Over!");
       endGame();
     }
-    else {
-      console.log("getting the next word...");      // get the next word in the list
-      setWord(shuffledWordList[0]);
+    else {      
+      setWord(shuffledWordList[0]);                       // get the next word in the list
       setScrambledWord(shuffle(shuffledWordList[0]));
       setShuffledWordList ( prevState => prevState.filter( entry => entry != shuffledWordList[0]) );
     }
@@ -250,7 +244,6 @@ function App(){
 
   // Use Pass
   function usePassHandler(){
-    console.log(`Pass Button - ${passes}`);
     setPasses(PrevState => PrevState - 1);
     nextWord(wordList);
     setMessage('Passed! your next word is...')
@@ -267,23 +260,15 @@ function App(){
     setGameOver(false);
   }
 
-  // *** Testing ***
-  console.log(wordList);
-  console.log(shuffledWordList);
-  console.log(`Scramble: ${scrambledWord}`);
-  console.log(`Answer: ${word}`);
-  console.log(`Score: ${score}`);
-  console.log(`Strikes: ${strikes}`);
-  console.log(`Passes: ${passes}`);
-  console.log(`Game Over: ${gameOver}`);
-
   // *** Build ***
-
   return(
     <article>
       <header>
         <Title>Scramble</Title>
-        <Stats score={score} strikes={strikes} passes={passes} />
+        {strikes >= 3 ? 
+          <Stats score={score} strikes={strikes} passes={passes} style='alert'/> :
+          <Stats score={score} strikes={strikes} passes={passes} style=''/>
+        }
         <Message message={message}/>
         <WordDisplay word={scrambledWord}/>
       </header>
