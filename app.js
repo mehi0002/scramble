@@ -193,13 +193,7 @@ function App(){
       setMessage("3 strikes, you're out");
       endGame();
     }
-    }, [strikes]);   
-
-  // Scramble new word
-  React.useEffect( () => {                            // scramble new word and remove from list
-      setScrambledWord(shuffle(word));
-      setShuffledWordList ( prevState => prevState.filter( entry => entry != word) );
-    }, [word]);       
+    }, [strikes]);         
 
   // *** Functions ***
 
@@ -220,7 +214,7 @@ function App(){
     console.log(`Guess: ${guess} - Answer: ${word}`);
     
     if (guess.toLowerCase() === word.toLowerCase()){      // IF correct, add a point and get the next word
-      setMessage("correct! Next word...");
+      setMessage("Correct! Next word...");
       setScore(prevScore => prevScore + 1);
       nextWord();
     }
@@ -241,6 +235,8 @@ function App(){
     else {
       console.log("getting the next word...");      // get the next word in the list
       setWord(shuffledWordList[0]);
+      setScrambledWord(shuffle(shuffledWordList[0]));
+      setShuffledWordList ( prevState => prevState.filter( entry => entry != shuffledWordList[0]) );
     }
 
   }
@@ -257,6 +253,7 @@ function App(){
     console.log(`Pass Button - ${passes}`);
     setPasses(PrevState => PrevState - 1);
     nextWord(wordList);
+    setMessage('Passed! your next word is...')
   }
 
   // Start a new game
